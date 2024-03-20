@@ -5,24 +5,61 @@ import {
   StyleSheet,
   ScrollView,
   Dimensions,
-  Location,
+  Platform,
+  PermissionsAndroid,
 } from 'react-native';
+import Geolocation from 'react-native-geolocation-service';
 
-export default function App() {
+export default async function App() {
   const [location, setLocation] = useState(true);
-  const [ok, setOk] = useState(true);
-  const ask = async () => {
-    const await Location.requestPermissionsAsync();
-  };
+  // const [city, setCity] = useState('Loading...');
+  // const [temp, setTemp] = useState('Loading...');
+  // const [weather, setWeather] = useState('Loading...');
+  // const weatherApiKey = '174580b1f4ee4ec1e406e56c83717aed';
+  // const url = `api.openweathermap.org/data/2.5/forecast?lat=${location.latitude}&lon=${location.longitude}&appid=${weatherApiKey}`;
+
   useEffect(() => {
-    ask();
+    // 위치 업데이트 설정
+    if (Platform.OS === 'android') {
+      PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+      );
+    }
+  }, []);
+
+  useEffect(() => {
+    // 위치 업데이트 설정
+    const watchId = Geolocation.watchPosition(
+      position => {
+        const {latitude, longitude} = position.coords;
+        // currentLocation에 위도, 경도 저장
+        setLocation({latitude, longitude});
+      },
+      error => {
+        console.log(error);
+      },
+      {
+        enableHighAccuracy: true, // 배터리를 더 소모하여 보다 정확한 위치 추적
+        timeout: 20000,
+        maximumAge: 0, // 한 번 찾은 위치 정보를 해당 초만큼 캐싱
+        distanceFilter: 1,
+      },
+    );
+    // 컴포넌트 언마운트 시 위치 업데이트 중지
+    return () => {
+      Geolocation.clearWatch(watchId);
+    };
   }, []);
 
   return (
     <View style={styles.container}>
       <View style={styles.city}>
         <Text style={styles.cityName}>Seoul</Text>
+        {/* <Text>location.latitude: {location.latitude}</Text>
+        <Text>location.longitude: {location.longitude}</Text>
+        <Text>{url}</Text> */}
       </View>
+
       <ScrollView
         pagingEnabled
         horizontal
