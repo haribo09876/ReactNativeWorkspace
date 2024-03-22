@@ -14,11 +14,11 @@ import axios from 'axios';
 
 export default function App() {
   const [location, setLocation] = useState(true);
-  // const [data, setData] = useState();
+  const [count, setCount] = useState(0);
   const [city, setCity] = useState('Loading...');
-  const [time, setTime] = useState();
-  const [weather, setWeather] = useState();
-  const [temperature, setTemperature] = useState();
+  const [info, setInfo] = useState([]);
+  // const [time, setTime] = useState([]);
+  // const [temperature, setTemperature] = useState([]);
   const weatherApiKey = '174580b1f4ee4ec1e406e56c83717aed';
   const url = `https://api.openweathermap.org/data/2.5/forecast?lat=${location.latitude}&lon=${location.longitude}&appid=${weatherApiKey}`;
 
@@ -62,12 +62,16 @@ export default function App() {
       // data 안에 들어가면 바로 활용 가능! json 변환 필요 없음
       .then(
         response => {
+          setCount(response.data.cnt);
           setCity(response.data.city.name);
-          setTime(response.data.list[0].dt_txt);
-          setWeather(response.data.list[0].weather[0].main);
-          setTemperature(
-            Math.round((response.data.list[0].main.temp - 273) * 10) / 10,
-          );
+
+          setInfo(response.data.list[0]);
+
+          // setTime(response.data.list[0].dt_txt);
+          // setTemperature(
+          //   Math.round((response.data.list[0].main.temp - 273) * 10) / 10,
+          // );
+          // setWeather(response.data.list[0].weather[0].main);
         },
         error => {
           console.log(error);
@@ -75,26 +79,37 @@ export default function App() {
       );
   });
 
+  // console.log(info.main);
+
   return (
     <View style={styles.container}>
       <View style={styles.city}>
         <Text style={styles.cityName}>{city}</Text>
-        <Text>{time}</Text>
-        <Text>{weather}</Text>
-        <Text>{temperature}&#8451;</Text>
       </View>
       <ScrollView
         pagingEnabled
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.weather}>
-        {/* {days.length === 0 ? (
-        <View style={styles.day}>
-          <ActivityIndicator />
-        </View>
+        {count === 0 ? (
+          <View style={styles.day}>
+            <ActivityIndicator
+              color="white"
+              style={{marginTop: 10}}
+              size="large"
+            />
+          </View>
         ) : (
-          <View style={styles.day}></View>
-        )} */}
+          <View style={styles.day}>
+            <Text style={styles.description}>시간 : {info.dt_txt}</Text>
+            {/* <Text style={styles.description}>
+              온도 : {info.main.temp} &#8451;
+            </Text> */}
+            {/* <Text style={styles.description}>
+              날씨 : {info.weather[0].main}
+            </Text> */}
+          </View>
+        )}
       </ScrollView>
     </View>
   );
