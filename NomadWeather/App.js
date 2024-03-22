@@ -57,29 +57,18 @@ export default function App() {
 
   // API 정보 설정
   useEffect(() => {
-    const getCity = axios
-      .get(url)
-      // data 안에 들어가면 바로 활용 가능! json 변환 필요 없음
-      .then(
-        response => {
-          setCount(response.data.cnt);
-          setCity(response.data.city.name);
-
-          setInfo(response.data.list[0]);
-
-          // setTime(response.data.list[0].dt_txt);
-          // setTemperature(
-          //   Math.round((response.data.list[0].main.temp - 273) * 10) / 10,
-          // );
-          // setWeather(response.data.list[0].weather[0].main);
-        },
-        error => {
-          console.log(error);
-        },
-      );
+    axios
+      .get(url, {responseType: 'json'})
+      .then(response => {
+        const jsonData = response.data;
+        setCount(jsonData.cnt);
+        setCity(jsonData.city.name);
+        setInfo(jsonData.list[0]);
+      })
+      .catch(error => {
+        console.error(error);
+      });
   });
-
-  // console.log(info.main);
 
   return (
     <View style={styles.container}>
@@ -102,12 +91,13 @@ export default function App() {
         ) : (
           <View style={styles.day}>
             <Text style={styles.description}>시간 : {info.dt_txt}</Text>
-            {/* <Text style={styles.description}>
+            {/* setTemperature(Math.round((response.data.list[0].main.temp - 273)* 10) / 10) */}
+            <Text style={styles.description}>
               온도 : {info.main.temp} &#8451;
-            </Text> */}
-            {/* <Text style={styles.description}>
+            </Text>
+            <Text style={styles.description}>
               날씨 : {info.weather[0].main}
-            </Text> */}
+            </Text>
           </View>
         )}
       </ScrollView>
