@@ -14,15 +14,10 @@ import axios from 'axios';
 
 export default function App() {
   const [location, setLocation] = useState(true);
-  const [count, setCount] = useState(0);
+  const [infos, setInfos] = useState([]);
   const [city, setCity] = useState('Loading...');
-  const [info, setInfo] = useState([]);
-  // const [time, setTime] = useState([]);
-  // const [temperature, setTemperature] = useState([]);
-  const weatherApiKey = '174580b1f4ee4ec1e406e56c83717aed';
-  const url = `https://api.openweathermap.org/data/2.5/forecast?lat=${location.latitude}&lon=${location.longitude}&appid=${weatherApiKey}`;
 
-  // 위치 업데이트 설정
+  // 위치 정보
   useEffect(() => {
     if (Platform.OS === 'android') {
       PermissionsAndroid.request(
@@ -31,7 +26,7 @@ export default function App() {
     }
   }, []);
 
-  // 위치 업데이트 설정
+  // 위도, 경도
   useEffect(() => {
     const watchId = Geolocation.watchPosition(
       position => {
@@ -55,20 +50,27 @@ export default function App() {
     };
   }, []);
 
-  // API 정보 설정
+  // 날씨 정보
   useEffect(() => {
+    const weatherApiKey = '174580b1f4ee4ec1e406e56c83717aed';
+    const url = `https://api.openweathermap.org/data/2.5/forecast?lat=${location.latitude}&lon=${location.longitude}&appid=${weatherApiKey}`;
+
     axios
       .get(url, {responseType: 'json'})
       .then(response => {
-        const jsonData = response.data;
-        setCount(jsonData.cnt);
-        setCity(jsonData.city.name);
-        setInfo(jsonData.list[0]);
+        const data = response.data;
+        setInfos({
+          time: data.dt_text,
+          temp: Math.round((data.main.temp - 273) * 10) / 10,
+          weather: data.weather[0].main,
+        });
+        setCity(data.city.name);
+        // setInfos(jsonData.list[0]);
       })
       .catch(error => {
         console.error(error);
       });
-  });
+  }, []);
 
   return (
     <View style={styles.container}>
@@ -80,7 +82,7 @@ export default function App() {
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.weather}>
-        {count === 0 ? (
+        {infos.length === 0 ? (
           <View style={styles.day}>
             <ActivityIndicator
               color="white"
@@ -89,16 +91,13 @@ export default function App() {
             />
           </View>
         ) : (
-          <View style={styles.day}>
-            <Text style={styles.description}>시간 : {info.dt_txt}</Text>
-            {/* setTemperature(Math.round((response.data.list[0].main.temp - 273)* 10) / 10) */}
-            <Text style={styles.description}>
-              온도 : {info.main.temp} &#8451;
-            </Text>
-            <Text style={styles.description}>
-              날씨 : {info.weather[0].main}
-            </Text>
-          </View>
+          infos.map((info, index) => (
+            <View key={index} style={styles.day}>
+              <Text style={styles.description}>시간 : {info.time}</Text>
+              <Text style={styles.description}>온도 : {info.temp} &#8451;</Text>
+              <Text style={styles.description}>날씨 : {info.weather}</Text>
+            </View>
+          ))
         )}
       </ScrollView>
     </View>
