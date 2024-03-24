@@ -11,13 +11,16 @@ import {
 } from 'react-native';
 import Geolocation from 'react-native-geolocation-service';
 import axios from 'axios';
+const {width: SCREEN_WIDTH} = Dimensions.get('window');
+const API_KEY = '174580b1f4ee4ec1e406e56c83717aed';
 
 export default function App() {
   const [location, setLocation] = useState(true);
-  const [infos, setInfos] = useState([]);
   const [city, setCity] = useState('Loading...');
+  const [days, setDays] = useState([]);
+  const url = `https://api.openweathermap.org/data/2.5/forecast?lat=37.531&lon=126.9814&appid=${API_KEY}`;
 
-  // 위치 정보
+  // 위치 설정
   useEffect(() => {
     if (Platform.OS === 'android') {
       PermissionsAndroid.request(
@@ -26,12 +29,11 @@ export default function App() {
     }
   }, []);
 
-  // 위도, 경도
+  // 위도, 경도 설정
   useEffect(() => {
     const watchId = Geolocation.watchPosition(
       position => {
         const {latitude, longitude} = position.coords;
-        // currentLocation에 위도, 경도 저장
         setLocation({latitude, longitude});
       },
       error => {
@@ -50,26 +52,17 @@ export default function App() {
     };
   }, []);
 
-  // 날씨 정보
   useEffect(() => {
-    const weatherApiKey = '174580b1f4ee4ec1e406e56c83717aed';
-    const url = `https://api.openweathermap.org/data/2.5/forecast?lat=${location.latitude}&lon=${location.longitude}&appid=${weatherApiKey}`;
-
-    axios
-      .get(url, {responseType: 'json'})
-      .then(response => {
-        const data = response.data;
-        setInfos({
-          time: data.dt_text,
-          temp: Math.round((data.main.temp - 273) * 10) / 10,
-          weather: data.weather[0].main,
-        });
-        setCity(data.city.name);
-        // setInfos(jsonData.list[0]);
-      })
-      .catch(error => {
-        console.error(error);
-      });
+    // 날씨 설정
+    const getWeather = axios.get(url).then(
+      response => {
+        setCity(response.data.city.name);
+        setDays(response.data.list);
+      },
+      error => {
+        console.log(error);
+      },
+    );
   }, []);
 
   return (
@@ -82,7 +75,7 @@ export default function App() {
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.weather}>
-        {infos.length === 0 ? (
+        {days.length === 0 ? (
           <View style={styles.day}>
             <ActivityIndicator
               color="white"
@@ -91,11 +84,16 @@ export default function App() {
             />
           </View>
         ) : (
-          infos.map((info, index) => (
+          days.map((day, index) => (
             <View key={index} style={styles.day}>
-              <Text style={styles.description}>시간 : {info.time}</Text>
-              <Text style={styles.description}>온도 : {info.temp} &#8451;</Text>
-              <Text style={styles.description}>날씨 : {info.weather}</Text>
+              <Text style={styles.temp}>
+                {parseFloat(day.main.temp - 273).toFixed(1)} &#8451;
+              </Text>
+              <Text style={styles.description}>
+                {day.dt_txt.substring(5, 7)}월{day.dt_txt.substring(8, 10)}일
+                {day.dt_txt.substring(11, 13)}시
+              </Text>
+              <Text style={styles.tinyText}>{day.weather[0].main}</Text>
             </View>
           ))
         )}
@@ -104,12 +102,10 @@ export default function App() {
   );
 }
 
-const {width: screenWidth} = Dimensions.get('window');
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'brown',
+    backgroundColor: 'tomato',
   },
   city: {
     flex: 1.2,
@@ -117,20 +113,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   cityName: {
-    fontSize: 68,
+    fontSize: 58,
     fontWeight: '500',
   },
-  weather: {},
   day: {
-    width: screenWidth,
+    width: SCREEN_WIDTH,
     alignItems: 'center',
   },
   temp: {
     marginTop: 50,
-    fontSize: 178,
+    fontWeight: '500',
+    fontSize: 100,
   },
   description: {
-    margin: 30,
-    fontSize: 60,
+    marginTop: -10,
+    fontSize: 40,
+  },
+  tinyText: {
+    marginTop: 10,
+    fontSize: 30,
   },
 });
