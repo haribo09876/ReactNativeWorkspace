@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import Geolocation from 'react-native-geolocation-service';
 import axios from 'axios';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 const {width: SCREEN_WIDTH} = Dimensions.get('window');
 const API_KEY = '174580b1f4ee4ec1e406e56c83717aed';
 
@@ -19,6 +20,16 @@ export default function App() {
   const [city, setCity] = useState('Loading...');
   const [days, setDays] = useState([]);
   const url = `https://api.openweathermap.org/data/2.5/forecast?lat=37.531&lon=126.9814&appid=${API_KEY}`;
+
+  const icons = {
+    Clouds: 'weather-cloudy',
+    Clear: 'weather-sunny',
+    Atmosphere: 'foggy',
+    Snow: 'weather-snowy-heavy',
+    Rain: 'weather-pouring',
+    Drizzle: 'weather-fog',
+    Thunderstorm: 'weather-lightning',
+  };
 
   // 위치 설정
   useEffect(() => {
@@ -86,13 +97,27 @@ export default function App() {
         ) : (
           days.map((day, index) => (
             <View key={index} style={styles.day}>
-              <Text style={styles.temp}>
-                {parseFloat(day.main.temp - 273).toFixed(1)} &#8451;
-              </Text>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'flex-end',
+                  width: '100%',
+                  justifyContent: 'space-between',
+                }}>
+                <Text style={styles.temp}>
+                  {parseFloat(day.main.temp - 273).toFixed(1)}&#8451;
+                </Text>
+                <Icon
+                  name={icons[day.weather[0].main]}
+                  size={68}
+                  color="white"
+                />
+              </View>
               <Text style={styles.description}>
-                {day.dt_txt.substring(5, 7)}월{day.dt_txt.substring(8, 10)}일
+                {day.dt_txt.substring(5, 7)}월 {day.dt_txt.substring(8, 10)}일
                 {day.dt_txt.substring(11, 13)}시
               </Text>
+
               <Text style={styles.tinyText}>{day.weather[0].main}</Text>
             </View>
           ))
@@ -115,22 +140,30 @@ const styles = StyleSheet.create({
   cityName: {
     fontSize: 58,
     fontWeight: '500',
+    color: 'white',
   },
+  weather: {},
   day: {
     width: SCREEN_WIDTH,
-    alignItems: 'center',
+    alignItems: 'flex-start',
+    paddingHorizontal: 20,
   },
   temp: {
     marginTop: 50,
-    fontWeight: '500',
+    fontWeight: '600',
     fontSize: 100,
+    color: 'white',
   },
   description: {
     marginTop: -10,
-    fontSize: 40,
+    fontSize: 30,
+    color: 'white',
+    fontWeight: '500',
   },
   tinyText: {
-    marginTop: 10,
-    fontSize: 30,
+    marginTop: -5,
+    fontSize: 25,
+    color: 'white',
+    fontWeight: '500',
   },
 });
