@@ -9,7 +9,6 @@ import {
   Alert,
   ScrollView,
 } from 'react-native';
-import {Fontisto} from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {theme} from './colors';
 
